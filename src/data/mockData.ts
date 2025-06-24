@@ -1,12 +1,14 @@
 import { Deal, User, Message, Notification } from '../types';
 
+let username = "chikkala Giridhar sai";
+
 export const mockUsers: User[] = [
   {
     $id: '1',
     email: 'john.buyer@example.com',
     name: 'John Smith',
     role: 'buyer',
-    avatar: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=400',
+    avatar: `https://ui-avatars.com/api/?name=${username}&background=random`,
     createdAt: '2024-01-15T10:00:00Z',
     lastActive: '2024-12-15T14:30:00Z',
   },

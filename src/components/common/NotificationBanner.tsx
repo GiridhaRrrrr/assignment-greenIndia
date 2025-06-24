@@ -34,15 +34,16 @@ const NotificationBanner: React.FC = () => {
   const getBgColor = (type: string) => {
     switch (type) {
       case 'success':
-        return 'bg-success-50 dark:bg-success-900/20 border-success-200 dark:border-success-800';
+        return 'bg-success-50 dark:bg-success-900/60 border-success-200 dark:border-success-700';
       case 'warning':
-        return 'bg-warning-50 dark:bg-warning-900/20 border-warning-200 dark:border-warning-800';
+        return 'bg-warning-50 dark:bg-warning-900/60 border-warning-200 dark:border-warning-700';
       case 'error':
-        return 'bg-error-50 dark:bg-error-900/20 border-error-200 dark:border-error-800';
+        return 'bg-error-50 dark:bg-error-900/60 border-error-200 dark:border-error-700';
       default:
-        return 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800';
+        return 'bg-primary-50 dark:bg-primary-900/60 border-primary-200 dark:border-primary-700';
     }
   };
+  
 
   const handleNotificationClick = (notification: any) => {
     dispatch(markNotificationRead(notification.id));

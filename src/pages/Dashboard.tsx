@@ -27,41 +27,7 @@ const Dashboard: React.FC = () => {
   const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // const stats = [
-  //   {
-  //     title: 'Active Deals',
-  //     value: mockAnalytics.activeDeals,
-  //     change: '+12%',
-  //     trend: 'up',
-  //     icon: Briefcase,
-  //     color: 'primary',
-  //   },
-  //   {
-  //     title: 'Total Revenue',
-  //     value: `$${(mockAnalytics.totalRevenue / 1000000).toFixed(1)}M`,
-  //     change: '+23%',
-  //     trend: 'up',
-  //     icon: DollarSign,
-  //     color: 'success',
-  //   },
-  //   {
-  //     title: 'Completed Deals',
-  //     value: mockAnalytics.completedDeals,
-  //     change: '+8%',
-  //     trend: 'up',
-  //     icon: CheckCircle,
-  //     color: 'secondary',
-  //   },
-  //   {
-  //     title: 'Avg Deal Size',
-  //     value: `$${(mockAnalytics.avgDealSize / 1000).toFixed(0)}K`,
-  //     change: '-3%',
-  //     trend: 'down',
-  //     icon: TrendingUp,
-  //     color: 'warning',
-  //   },
-  // ];
-  useEffect(() => {
+   useEffect(() => {
     const fetchDeals = async () => {
       try {
         const response = await getAllDeals();
