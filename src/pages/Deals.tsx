@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
@@ -21,12 +21,17 @@ import { useAuth } from '../hooks/useAuth';
 import { mockDeals } from '../data/mockData';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
+import { getAllDeals } from '../services/appwrite/deals';
+import { Deal } from '../types';
+
 
 const Deals: React.FC = () => {
   const { user, isBuyer, isSeller } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState('updatedAt');
+  const [deals, setDeals] = useState<Deal[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const statusColors = {
     pending: 'bg-warning-100 text-warning-800 dark:bg-warning-900 dark:text-warning-200',
@@ -49,11 +54,49 @@ const Deals: React.FC = () => {
   };
 
   // Filter deals based on user role
-  const userDeals = mockDeals.filter(deal => {
+  const userDeals = deals.filter(deal => {
     if (isBuyer) return deal.buyerId === user?.$id;
     if (isSeller) return deal.sellerId === user?.$id;
     return true; // Admin sees all
   });
+
+  useEffect(() => {
+    const fetchDeals = async () => {
+      try {
+        const allDeals = await getAllDeals();
+        setDeals(allDeals.documents.map(doc => ({
+          id: doc.$id,
+          title: doc.title,
+          description: doc.description,
+          price: doc.price,
+          status: doc.status,
+          buyerId: doc.buyerId,
+          sellerId: doc.sellerId,
+          createdAt: doc.createdAt,
+          updatedAt: doc.updatedAt,
+          dueDate: doc.dueDate,
+          tags: doc.tags,
+          priority: doc.priority,
+        })) as Deal[]);
+        
+      } catch (error) {
+        console.error('Error fetching deals:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    fetchDeals();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-500 dark:text-gray-400">Loading deals...</p>
+      </div>
+    );
+  }
+  
 
   const filteredDeals = userDeals.filter(deal => {
     const matchesSearch = deal.title.toLowerCase().includes(searchTerm.toLowerCase()) ||

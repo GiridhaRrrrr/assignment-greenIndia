@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   TrendingUp,
@@ -14,7 +14,8 @@ import {
   Plus,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import { mockDeals, mockAnalytics } from '../data/mockData';
+import { getAllDeals } from '../services/appwrite/deals';
+import { Deal } from '../types';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import { Link } from 'react-router-dom';
@@ -23,41 +24,84 @@ const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [deals, setDeals] = useState<Deal[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const stats = [
-    {
-      title: 'Active Deals',
-      value: mockAnalytics.activeDeals,
-      change: '+12%',
-      trend: 'up',
-      icon: Briefcase,
-      color: 'primary',
-    },
-    {
-      title: 'Total Revenue',
-      value: `$${(mockAnalytics.totalRevenue / 1000000).toFixed(1)}M`,
-      change: '+23%',
-      trend: 'up',
-      icon: DollarSign,
-      color: 'success',
-    },
-    {
-      title: 'Completed Deals',
-      value: mockAnalytics.completedDeals,
-      change: '+8%',
-      trend: 'up',
-      icon: CheckCircle,
-      color: 'secondary',
-    },
-    {
-      title: 'Avg Deal Size',
-      value: `$${(mockAnalytics.avgDealSize / 1000).toFixed(0)}K`,
-      change: '-3%',
-      trend: 'down',
-      icon: TrendingUp,
-      color: 'warning',
-    },
-  ];
+  // const stats = [
+  //   {
+  //     title: 'Active Deals',
+  //     value: mockAnalytics.activeDeals,
+  //     change: '+12%',
+  //     trend: 'up',
+  //     icon: Briefcase,
+  //     color: 'primary',
+  //   },
+  //   {
+  //     title: 'Total Revenue',
+  //     value: `$${(mockAnalytics.totalRevenue / 1000000).toFixed(1)}M`,
+  //     change: '+23%',
+  //     trend: 'up',
+  //     icon: DollarSign,
+  //     color: 'success',
+  //   },
+  //   {
+  //     title: 'Completed Deals',
+  //     value: mockAnalytics.completedDeals,
+  //     change: '+8%',
+  //     trend: 'up',
+  //     icon: CheckCircle,
+  //     color: 'secondary',
+  //   },
+  //   {
+  //     title: 'Avg Deal Size',
+  //     value: `$${(mockAnalytics.avgDealSize / 1000).toFixed(0)}K`,
+  //     change: '-3%',
+  //     trend: 'down',
+  //     icon: TrendingUp,
+  //     color: 'warning',
+  //   },
+  // ];
+  useEffect(() => {
+    const fetchDeals = async () => {
+      try {
+        const response = await getAllDeals();
+  
+        const formattedDeals: Deal[] = response.documents.map((doc: any) => ({
+          id: doc.$id,
+          title: doc.title,
+          description: doc.description,
+          price: doc.price,
+          status: doc.status,
+          buyerId: doc.buyerId,
+          sellerId: doc.sellerId,
+          createdAt: doc.$createdAt,
+          updatedAt: doc.$updatedAt,
+          dueDate: doc.dueDate || undefined,
+          tags: doc.tags || [],
+          priority: doc.priority,
+        }));
+  
+        setDeals(formattedDeals);
+      } catch (error) {
+        console.error("Error fetching deals:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    fetchDeals();
+  }, []);
+  
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <p className="text-gray-500 dark:text-gray-400">Loading deals...</p>
+      </div>
+    );
+  }
+  
+
 
   const statusColors = {
     pending: 'bg-warning-100 text-warning-800 dark:bg-warning-900 dark:text-warning-200',
@@ -73,12 +117,59 @@ const Dashboard: React.FC = () => {
     cancelled: XCircle,
   };
 
-  const filteredDeals = mockDeals.filter(deal => {
+  interface StatItem {
+    title: string;
+    value: string | number;
+    change: string;
+    trend: 'up' | 'down';
+    icon: React.ComponentType<{ className?: string }>;
+    color: 'primary' | 'secondary' | 'success' | 'warning' | 'error';
+  }
+
+  const stats: StatItem[] = [
+    {
+      title: 'Active Deals',
+      value: deals.filter(d => d.status === 'in_progress').length,
+      change: '+12%',
+      trend: 'up',
+      icon: Briefcase,
+      color: 'primary',
+    },
+    {
+      title: 'Completed Deals',
+      value: deals.filter(d => d.status === 'completed').length,
+      change: '+8%',
+      trend: 'up',
+      icon: CheckCircle,
+      color: 'secondary',
+    },
+    {
+      title: 'Total Revenue',
+      value: `$${deals.reduce((acc, d) => acc + (d.status === 'completed' ? d.price : 0), 0).toLocaleString()}`,
+      change: '+20%',
+      trend: 'up',
+      icon: DollarSign,
+      color: 'success',
+    },
+    {
+      title: 'Avg Deal Size',
+      value: `$${Math.round(deals.reduce((acc, d) => acc + d.price, 0) / deals.length || 0)}`,
+      change: '-2%',
+      trend: 'down',
+      icon: TrendingUp,
+      color: 'warning',
+    },
+  ];
+  
+  
+
+  const filteredDeals = deals.filter(deal => {
     const matchesSearch = deal.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         deal.description.toLowerCase().includes(searchTerm.toLowerCase());
+                           deal.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || deal.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+  
 
   return (
     <div className="space-y-8">

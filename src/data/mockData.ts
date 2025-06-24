@@ -2,7 +2,7 @@ import { Deal, User, Message, Notification } from '../types';
 
 export const mockUsers: User[] = [
   {
-    id: '1',
+    $id: '1',
     email: 'john.buyer@example.com',
     name: 'John Smith',
     role: 'buyer',
@@ -11,7 +11,7 @@ export const mockUsers: User[] = [
     lastActive: '2024-12-15T14:30:00Z',
   },
   {
-    id: '2',
+    $id: '2',
     email: 'sarah.seller@example.com',
     name: 'Sarah Johnson',
     role: 'seller',
@@ -20,7 +20,7 @@ export const mockUsers: User[] = [
     lastActive: '2024-12-15T15:00:00Z',
   },
   {
-    id: '3',
+    $id: '3',
     email: 'admin@example.com',
     name: 'Admin User',
     role: 'admin',

@@ -17,6 +17,8 @@ import {
 import { useAuth } from '../hooks/useAuth';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
+import { createDeal } from "../services/appwrite/deals"
+
 
 const dealSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters').max(100, 'Title must be less than 100 characters'),
@@ -35,6 +37,16 @@ const CreateDeal: React.FC = () => {
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const dealSchema = z.object({
+    title: z.string().min(5).max(100),
+    description: z.string().min(20).max(1000),
+    price: z.number().min(1).max(10000000),
+    dueDate: z.string().optional(),
+    priority: z.enum(['low', 'medium', 'high']),
+    tags: z.string().array().optional(), // ← if you want to validate tags too
+    // category: z.string(), ← remove if not storing in DB
+  });
 
   const {
     register,
@@ -66,6 +78,9 @@ const CreateDeal: React.FC = () => {
     'Other',
   ];
 
+
+  
+
   const addTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim()) && tags.length < 5) {
       setTags([...tags, tagInput.trim()]);
@@ -79,37 +94,36 @@ const CreateDeal: React.FC = () => {
 
   const onSubmit = async (data: DealFormData) => {
     setIsSubmitting(true);
-    
+  
     try {
-      // Mock API call - replace with actual implementation
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const newDeal = {
-        id: Date.now().toString(),
-        ...data,
-        buyerId: user?.id,
-        sellerId: '', // Will be assigned when seller accepts
-        status: 'pending' as const,
+      const newDeal: Parameters<typeof createDeal>[0] = {
+        title: data.title,
+        description: data.description,
+        price: data.price,
+        dueDate: data.dueDate || undefined,
+        priority: data.priority,
+        buyerId: user?.$id || '',
+        sellerId: '',
+        status: 'pending',
         tags,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-
-      console.log('Created deal:', newDeal);
-      
-      // Redirect to deals page
-      navigate('/deals', { 
-        state: { 
-          message: 'Deal created successfully! Sellers will be notified.',
-          type: 'success' 
-        }
+      };      
+  
+      const created = await createDeal(newDeal);
+  
+  
+      navigate("/deals", {
+        state: {
+          message: "Deal created successfully! Sellers will be notified.",
+          type: "success",
+        },
       });
     } catch (error) {
-      console.error('Error creating deal:', error);
+      console.error("Error creating deal:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
+  
 
   const watchedPrice = watch('price');
   const watchedDescription = watch('description');

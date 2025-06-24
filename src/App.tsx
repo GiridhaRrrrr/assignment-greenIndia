@@ -1,9 +1,8 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Provider } from 'react-redux';
-import { store } from './store';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from './store';
+import { Provider, useDispatch, useSelector } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react';
+import { store, persistor, RootState } from './store';
 import { setTheme } from './store/slices/themeSlice';
 
 // Layout
@@ -20,20 +19,18 @@ import CreateDeal from './pages/CreateDeal';
 import Chat from './pages/Chat';
 import VideoCall from './pages/VideoCall';
 
-// Initialize theme
+// Theme Initializer
 const ThemeInitializer: React.FC = () => {
   const dispatch = useDispatch();
   const theme = useSelector((state: RootState) => state.theme);
 
   useEffect(() => {
-    // Apply theme to document
     if (theme.mode === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
 
-    // Listen for system theme changes
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = (e: MediaQueryListEvent) => {
       if (!localStorage.getItem('theme')) {
@@ -77,7 +74,9 @@ const AppContent: React.FC = () => {
 const App: React.FC = () => {
   return (
     <Provider store={store}>
-      <AppContent />
+      <PersistGate loading={null} persistor={persistor}>
+        <AppContent />
+      </PersistGate>
     </Provider>
   );
 };
