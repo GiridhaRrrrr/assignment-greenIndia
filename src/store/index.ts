@@ -8,7 +8,6 @@ import themeSlice from './slices/themeSlice';
 import uiSlice from './slices/uiSlice';
 import { api } from './api';
 
-// 1. Combine your reducers
 const rootReducer = combineReducers({
   auth: authSlice,
   theme: themeSlice,
@@ -16,7 +15,7 @@ const rootReducer = combineReducers({
   [api.reducerPath]: api.reducer,
 });
 
-// 2. Configure persistence
+
 const persistConfig = {
   key: 'root',
   storage,
@@ -25,22 +24,18 @@ const persistConfig = {
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
-// 3. Create the store
 export const store = configureStore({
   reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      serializableCheck: false, // disables warnings for redux-persist actions
-    }).concat(api.middleware), // DON'T add thunk manually
+      serializableCheck: false,
+    }).concat(api.middleware),
     devTools: true
 });
 
-// 4. Setup listeners for RTK Query
 setupListeners(store.dispatch);
 
-// 5. Create persistor
 export const persistor = persistStore(store);
 
-// 6. Type exports
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
